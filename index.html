@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>איקס עיגול</title>
+    <title>Tic Tac Toe</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -16,8 +16,41 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            direction: rtl;
             padding: 20px 0;
+        }
+
+        /* ===== Language Switcher ===== */
+        .lang-bar {
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 200;
+            background: rgba(0,0,0,.35);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 30px;
+            padding: 5px 10px;
+            backdrop-filter: blur(8px);
+        }
+        .lang-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: #aaa;
+            font-family: inherit;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+        .lang-btn:hover { color: #fff; }
+        .lang-btn.active {
+            background: rgba(255,255,255,.18);
+            color: #fff;
+            font-weight: bold;
         }
 
         h1 {
@@ -27,17 +60,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        .subtitle {
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 1.05rem;
-        }
+        .subtitle { color: #aaa; margin-bottom: 30px; font-size: 1.05rem; }
 
         /* ===== Panels ===== */
         .panel {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
             border-radius: 16px;
             padding: 30px;
             text-align: center;
@@ -45,261 +73,113 @@
             width: 92%;
             backdrop-filter: blur(10px);
         }
-
-        .panel h2 {
-            margin-bottom: 22px;
-            font-size: 1.35rem;
-        }
+        .panel h2 { margin-bottom: 22px; font-size: 1.35rem; }
 
         /* ===== Buttons ===== */
-        .btn-group {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
-
+        .btn-group { display:flex; gap:14px; justify-content:center; margin-bottom:14px; flex-wrap:wrap; }
         .btn {
             padding: 12px 26px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.25s ease;
+            border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: bold;
+            cursor: pointer; transition: all .25s ease;
             font-family: inherit;
         }
-
-        .btn-pink  { background: linear-gradient(135deg,#f857a6,#ff5858); color:#fff; }
-        .btn-blue  { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
-        .btn-green { background: linear-gradient(135deg,#11998e,#38ef7d); color:#fff; }
-        .btn-gray  { background: rgba(255,255,255,0.12); color:#ddd; }
-
-        .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-pink  { background:linear-gradient(135deg,#f857a6,#ff5858); color:#fff; }
+        .btn-blue  { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+        .btn-green { background:linear-gradient(135deg,#11998e,#38ef7d); color:#fff; }
+        .btn-gray  { background:rgba(255,255,255,.12); color:#ddd; }
+        .btn:hover:not(:disabled) { transform:translateY(-2px); filter:brightness(1.1); }
         .btn:disabled { opacity:.45; cursor:not-allowed; transform:none!important; }
+        .btn-wide { width:100%; margin-bottom:12px; font-size:1.05rem; padding:14px; }
 
-        .btn-wide { width: 100%; margin-bottom: 12px; font-size: 1.05rem; padding: 14px; }
-
-        /* Difficulty buttons */
         .diff-btn {
-            flex: 1;
-            min-width: 90px;
-            padding: 14px 10px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            flex:1; min-width:90px; padding:14px 10px;
+            border-radius:12px; display:flex; flex-direction:column;
+            align-items:center; gap:4px;
         }
-        .diff-btn .icon { font-size: 1.8rem; }
-        .diff-btn .label { font-size: 0.9rem; font-weight: bold; }
-        .diff-btn .desc { font-size: 0.75rem; opacity:.7; }
+        .diff-btn .icon  { font-size:1.8rem; }
+        .diff-btn .label { font-size:.9rem; font-weight:bold; }
+        .diff-btn .desc  { font-size:.75rem; opacity:.7; }
 
         /* ===== Input ===== */
-        .input-group {
-            display: none;
-            margin-top: 15px;
-            gap: 10px;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .input-group.visible { display: flex; }
+        .input-group { display:none; margin-top:15px; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+        .input-group.visible { display:flex; }
 
         input[type="text"] {
-            padding: 12px 16px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            font-size: 1rem;
-            text-align: center;
-            width: 210px;
-            font-family: monospace;
-            letter-spacing: 2px;
-            direction: ltr;
+            padding:12px 16px; border:2px solid rgba(255,255,255,.2);
+            border-radius:10px; background:rgba(255,255,255,.1);
+            color:#fff; font-size:1rem; text-align:center;
+            width:210px; font-family:monospace; letter-spacing:2px; direction:ltr;
         }
-        input[type="text"]::placeholder { color: rgba(255,255,255,0.4); letter-spacing:normal; }
+        input[type="text"]::placeholder { color:rgba(255,255,255,.4); letter-spacing:normal; }
         input[type="text"]:focus { outline:none; border-color:#667eea; }
 
         .room-code {
-            font-family: monospace;
-            font-size: 1.9rem;
-            letter-spacing: 4px;
-            color: #f857a6;
-            background: rgba(248,87,166,0.1);
-            padding: 10px 24px;
-            border-radius: 10px;
-            margin: 14px 0;
-            display: inline-block;
-            direction: ltr;
-            user-select: all;
-            cursor: pointer;
+            font-family:monospace; font-size:1.9rem; letter-spacing:4px;
+            color:#f857a6; background:rgba(248,87,166,.1);
+            padding:10px 24px; border-radius:10px; margin:14px 0;
+            display:inline-block; direction:ltr; user-select:all; cursor:pointer;
         }
         .copy-hint { font-size:.82rem; color:#888; margin-bottom:8px; }
 
         #status { margin-top:14px; font-size:.92rem; color:#aaa; min-height:22px; }
-        .status-waiting { color:#ffd700!important; }
+        .status-waiting   { color:#ffd700!important; }
         .status-connected { color:#00e676!important; }
-        .status-error { color:#ff5252!important; }
+        .status-error     { color:#ff5252!important; }
 
         /* ===== Game Panel ===== */
         #game-panel { display:none; text-align:center; width:92%; max-width:380px; }
 
-        .game-info {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-        }
-
-        .player-badge {
-            padding: 7px 18px;
-            border-radius: 10px;
-            font-size: .95rem;
-            font-weight: bold;
-        }
+        .game-info { display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:18px; flex-wrap:wrap; }
+        .player-badge { padding:7px 18px; border-radius:10px; font-size:.95rem; font-weight:bold; }
         .player-x { background:rgba(248,87,166,.2); border:2px solid #f857a6; color:#f857a6; }
         .player-o { background:rgba(102,126,234,.2); border:2px solid #667eea; color:#667eea; }
+        .turn-indicator { font-size:1.15rem; font-weight:bold; min-height:28px; margin-bottom:6px; }
 
-        .turn-indicator {
-            font-size: 1.15rem;
-            font-weight: bold;
-            min-height: 28px;
-            margin-bottom: 6px;
-        }
-
-        /* Board */
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3,1fr);
-            gap: 8px;
-            width: 320px;
-            height: 320px;
-            margin: 0 auto 22px;
-        }
-
+        .board { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; width:320px; height:320px; margin:0 auto 22px; }
         .cell {
-            background: rgba(255,255,255,.05);
-            border: 2px solid rgba(255,255,255,.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.4rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all .2s ease;
+            background:rgba(255,255,255,.05); border:2px solid rgba(255,255,255,.1);
+            border-radius:12px; display:flex; align-items:center; justify-content:center;
+            font-size:3.4rem; font-weight:bold; cursor:pointer; transition:all .2s ease;
         }
         .cell:hover:not(.taken) { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.3); }
         .cell.taken { cursor:not-allowed; }
         .cell .x { color:#f857a6; text-shadow:0 0 18px rgba(248,87,166,.5); }
         .cell .o { color:#667eea; text-shadow:0 0 18px rgba(102,126,234,.5); }
-        .cell.win-cell {
-            animation: winPulse .6s ease infinite alternate;
-            border-color:#ffd700;
-            background:rgba(255,215,0,.1);
-        }
+        .cell.win-cell { animation:winPulse .6s ease infinite alternate; border-color:#ffd700; background:rgba(255,215,0,.1); }
         @keyframes winPulse { from{transform:scale(1)} to{transform:scale(1.06)} }
 
-        /* Scoreboard */
-        .scoreboard {
-            display: flex;
-            justify-content: center;
-            gap: 28px;
-            margin-bottom: 18px;
-            font-size: 1rem;
-        }
+        .scoreboard { display:flex; justify-content:center; gap:28px; margin-bottom:18px; font-size:1rem; }
         .score-item { display:flex; align-items:center; gap:7px; }
         .score-num { font-size:1.45rem; font-weight:bold; }
 
-        /* Result overlay */
         #result-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.72);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,.72);
+            z-index:100; justify-content:center; align-items:center; backdrop-filter:blur(5px);
         }
         #result-overlay.visible { display:flex; }
-        .result-box {
-            background: rgba(22,22,42,.96);
-            border: 2px solid rgba(255,255,255,.12);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-        }
+        .result-box { background:rgba(22,22,42,.96); border:2px solid rgba(255,255,255,.12); border-radius:20px; padding:40px; text-align:center; }
         .result-text { font-size:2rem; font-weight:bold; margin-bottom:22px; }
         .result-win  { color:#00e676; }
         .result-lose { color:#ff5252; }
         .result-draw { color:#ffd700; }
 
         /* Chat */
-        .chat-area {
-            background: rgba(255,255,255,.05);
-            border: 1px solid rgba(255,255,255,.1);
-            border-radius: 12px;
-            padding: 14px;
-            width: 100%;
-        }
+        .chat-area { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px; width:100%; }
         .chat-title { font-size:.88rem; color:#aaa; margin-bottom:9px; }
-        .chat-messages {
-            height: 95px;
-            overflow-y: auto;
-            margin-bottom: 9px;
-            font-size: .88rem;
-            text-align: right;
-        }
+        .chat-messages { height:95px; overflow-y:auto; margin-bottom:9px; font-size:.88rem; text-align:right; }
         .chat-messages p { margin-bottom:5px; padding:4px 8px; border-radius:6px; }
         .chat-messages .me   { background:rgba(248,87,166,.15); }
         .chat-messages .them { background:rgba(102,126,234,.15); }
         .chat-input-row { display:flex; gap:8px; }
-        .chat-input-row input {
-            flex:1; padding:8px 12px;
-            border:1px solid rgba(255,255,255,.2);
-            border-radius:8px;
-            background:rgba(255,255,255,.1);
-            color:#fff; font-size:.88rem; font-family:inherit;
-        }
+        .chat-input-row input { flex:1; padding:8px 12px; border:1px solid rgba(255,255,255,.2); border-radius:8px; background:rgba(255,255,255,.1); color:#fff; font-size:.88rem; font-family:inherit; direction:rtl; }
         .chat-input-row input:focus { outline:none; border-color:#667eea; }
-        .chat-input-row button {
-            padding:8px 15px; border:none; border-radius:8px;
-            background:#667eea; color:#fff; cursor:pointer;
-            font-family:inherit; font-weight:bold;
-        }
+        .chat-input-row button { padding:8px 15px; border:none; border-radius:8px; background:#667eea; color:#fff; cursor:pointer; font-family:inherit; font-weight:bold; }
 
-        /* Back button */
-        #btn-back {
-            margin-top: 18px;
-            background: none;
-            border: 1px solid rgba(255,255,255,.2);
-            color: #aaa;
-            font-size: .85rem;
-            padding: 7px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all .2s;
-        }
-        #btn-back:hover { border-color:#fff; color:#fff; }
+        .back-btn { margin-top:14px; background:none; border:1px solid rgba(255,255,255,.2); color:#aaa; font-size:.85rem; padding:7px 18px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all .2s; }
+        .back-btn:hover { border-color:#fff; color:#fff; }
 
-        /* Thinking indicator */
-        .thinking { color:#ffd700; font-size:.9rem; margin-top:4px; }
-
-        /* Loader */
-        .loader {
-            display:inline-block; width:18px; height:18px;
-            border:3px solid rgba(255,255,255,.2);
-            border-top-color:#ffd700; border-radius:50%;
-            animation:spin 1s linear infinite;
-            vertical-align:middle; margin-left:6px;
-        }
+        .loader { display:inline-block; width:18px; height:18px; border:3px solid rgba(255,255,255,.2); border-top-color:#ffd700; border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; margin:0 5px; }
         @keyframes spin { to{transform:rotate(360deg)} }
 
         @media (max-width:400px) {
@@ -311,76 +191,79 @@
 </head>
 <body>
 
-<h1>איקס עיגול</h1>
-<p class="subtitle" id="main-subtitle">בחר מצב משחק</p>
-
-<!-- ===== Mode Selection ===== -->
-<div class="panel" id="mode-panel">
-    <h2>במה תרצה לשחק?</h2>
-    <button class="btn btn-pink btn-wide" id="btn-vs-ai">🤖 נגד המחשב</button>
-    <button class="btn btn-blue btn-wide" id="btn-vs-friend">👥 נגד חבר (אונליין)</button>
+<!-- Language Bar -->
+<div class="lang-bar">
+    <button class="lang-btn active" data-lang="he">🇮🇱 עברית</button>
+    <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+    <button class="lang-btn" data-lang="ar">🇸🇦 العربية</button>
 </div>
 
-<!-- ===== Difficulty Selection ===== -->
+<h1 data-i18n="title">איקס עיגול</h1>
+<p class="subtitle" id="main-subtitle" data-i18n="chooseMode">בחר מצב משחק</p>
+
+<!-- Mode Selection -->
+<div class="panel" id="mode-panel">
+    <h2 data-i18n="modeQ">במה תרצה לשחק?</h2>
+    <button class="btn btn-pink btn-wide" id="btn-vs-ai" data-i18n="vsAI">🤖 נגד המחשב</button>
+    <button class="btn btn-blue btn-wide" id="btn-vs-friend" data-i18n="vsFriend">👥 נגד חבר (אונליין)</button>
+</div>
+
+<!-- Difficulty -->
 <div class="panel" id="difficulty-panel" style="display:none">
-    <h2>בחר רמת קושי</h2>
+    <h2 data-i18n="chooseDiff">בחר רמת קושי</h2>
     <div class="btn-group">
         <button class="btn btn-green diff-btn" id="diff-easy">
             <span class="icon">😊</span>
-            <span class="label">קל</span>
-            <span class="desc">טעויות הרבה</span>
+            <span class="label" data-i18n="easy">קל</span>
+            <span class="desc" data-i18n="easyDesc">טעויות הרבה</span>
         </button>
         <button class="btn btn-blue diff-btn" id="diff-medium">
             <span class="icon">🤔</span>
-            <span class="label">בינוני</span>
-            <span class="desc">לפעמים טועה</span>
+            <span class="label" data-i18n="medium">בינוני</span>
+            <span class="desc" data-i18n="mediumDesc">לפעמים טועה</span>
         </button>
         <button class="btn btn-pink diff-btn" id="diff-hard">
             <span class="icon">💀</span>
-            <span class="label">קשה</span>
-            <span class="desc">לא ניתן לנצח</span>
+            <span class="label" data-i18n="hard">קשה</span>
+            <span class="desc" data-i18n="hardDesc">לא ניתן לנצח</span>
         </button>
     </div>
-    <button id="btn-back">← חזור</button>
+    <button class="back-btn" id="btn-back" data-i18n="back">← חזור</button>
 </div>
 
-<!-- ===== Multiplayer Panel ===== -->
+<!-- Multiplayer -->
 <div class="panel" id="connection-panel" style="display:none">
-    <h2>חבר מחשבים</h2>
+    <h2 data-i18n="connectTitle">חבר מחשבים</h2>
     <div class="btn-group">
-        <button class="btn btn-pink" id="btn-create">צור חדר</button>
-        <button class="btn btn-blue" id="btn-join">הצטרף לחדר</button>
+        <button class="btn btn-pink" id="btn-create" data-i18n="createRoom">צור חדר</button>
+        <button class="btn btn-blue" id="btn-join" data-i18n="joinRoom">הצטרף לחדר</button>
     </div>
-
     <div class="input-group" id="join-input">
-        <input type="text" id="room-input" placeholder="הכנס קוד חדר" maxlength="6" autocomplete="off">
-        <button class="btn btn-blue" id="btn-connect">התחבר</button>
+        <input type="text" id="room-input" data-i18n-placeholder="enterCode" placeholder="הכנס קוד חדר" maxlength="6" autocomplete="off">
+        <button class="btn btn-blue" id="btn-connect" data-i18n="connect">התחבר</button>
     </div>
-
     <div id="room-code-display" style="display:none">
-        <p>קוד החדר שלך:</p>
-        <div class="room-code" id="room-code" title="לחץ להעתקה"></div>
-        <p class="copy-hint">לחץ על הקוד כדי להעתיק. שלח אותו לחבר!</p>
+        <p data-i18n="yourCode">קוד החדר שלך:</p>
+        <div class="room-code" id="room-code" title="click to copy"></div>
+        <p class="copy-hint" data-i18n="copyHint">לחץ על הקוד כדי להעתיק. שלח לחבר!</p>
     </div>
-
     <div id="status"></div>
-    <button id="btn-back-mp" style="margin-top:14px;background:none;border:1px solid rgba(255,255,255,.2);color:#aaa;font-size:.85rem;padding:7px 18px;border-radius:8px;cursor:pointer;font-family:inherit;">← חזור</button>
+    <button class="back-btn" id="btn-back-mp" data-i18n="back">← חזור</button>
 </div>
 
-<!-- ===== Game Panel ===== -->
+<!-- Game Panel -->
 <div id="game-panel">
     <div class="game-info">
         <span class="player-badge player-x" id="badge-x">X</span>
         <span class="player-badge player-o" id="badge-o">O</span>
     </div>
-
     <div class="scoreboard">
         <div class="score-item">
             <span style="color:#f857a6">X</span>
             <span class="score-num" id="score-x">0</span>
         </div>
         <div class="score-item">
-            <span style="color:#888">תיקו</span>
+            <span style="color:#888" data-i18n="draw">תיקו</span>
             <span class="score-num" id="score-draw">0</span>
         </div>
         <div class="score-item">
@@ -388,9 +271,7 @@
             <span class="score-num" id="score-o">0</span>
         </div>
     </div>
-
     <div class="turn-indicator" id="turn-indicator"></div>
-
     <div class="board" id="board">
         <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
@@ -402,41 +283,231 @@
         <div class="cell" data-index="7"></div>
         <div class="cell" data-index="8"></div>
     </div>
-
-    <!-- Chat (multiplayer only) -->
     <div class="chat-area" id="chat-area">
-        <div class="chat-title">צ'אט</div>
+        <div class="chat-title" data-i18n="chat">צ'אט</div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input-row">
-            <button id="btn-send">שלח</button>
-            <input type="text" id="chat-input" placeholder="כתוב הודעה...">
+            <button id="btn-send" data-i18n="send">שלח</button>
+            <input type="text" id="chat-input" data-i18n-placeholder="typeMsg" placeholder="כתוב הודעה...">
         </div>
     </div>
 </div>
 
-<!-- ===== Result Overlay ===== -->
+<!-- Result Overlay -->
 <div id="result-overlay">
     <div class="result-box">
         <div class="result-text" id="result-text"></div>
         <div class="btn-group">
-            <button class="btn btn-pink" id="btn-play-again">שחק שוב</button>
-            <button class="btn btn-gray" id="btn-main-menu">תפריט ראשי</button>
+            <button class="btn btn-pink" id="btn-play-again" data-i18n="playAgain">שחק שוב</button>
+            <button class="btn btn-gray"  id="btn-main-menu"  data-i18n="mainMenu">תפריט ראשי</button>
         </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-// ===== Constants =====
+// ===================================================
+// TRANSLATIONS
+// ===================================================
+const T = {
+    he: {
+        dir: 'rtl', lang: 'he',
+        title: 'איקס עיגול',
+        chooseMode: 'בחר מצב משחק',
+        modeQ: 'במה תרצה לשחק?',
+        vsAI: '🤖 נגד המחשב',
+        vsFriend: '👥 נגד חבר (אונליין)',
+        chooseDiff: 'בחר רמת קושי',
+        easy: 'קל', easyDesc: 'טעויות הרבה',
+        medium: 'בינוני', mediumDesc: 'לפעמים טועה',
+        hard: 'קשה', hardDesc: 'לא ניתן לנצח',
+        back: '← חזור',
+        connectTitle: 'חבר מחשבים',
+        createRoom: 'צור חדר',
+        joinRoom: 'הצטרף לחדר',
+        enterCode: 'הכנס קוד חדר',
+        connect: 'התחבר',
+        yourCode: 'קוד החדר שלך:',
+        copyHint: 'לחץ על הקוד כדי להעתיק. שלח לחבר!',
+        draw: 'תיקו',
+        chat: "צ'אט",
+        send: 'שלח',
+        typeMsg: 'כתוב הודעה...',
+        playAgain: 'שחק שוב',
+        mainMenu: 'תפריט ראשי',
+        // dynamic
+        youLabel: 'אתה', rivalLabel: 'יריב', aiLabel: 'מחשב',
+        yourTurn: 'התור שלך!',
+        rivalTurn: 'התור של היריב...',
+        aiThinking: 'המחשב חושב...',
+        youWin: 'ניצחת! 🎉', youLose: 'הפסדת 😢', aiWins: 'המחשב ניצח 🤖',
+        drawResult: 'תיקו! 🤝',
+        creatingRoom: 'יוצר חדר...',
+        waitingPlayer: 'ממתין לשחקן שני...',
+        connecting: 'מתחבר...',
+        connected: 'מחובר!',
+        codeUsed: 'קוד תפוס. נסה שוב.',
+        errorConn: 'לא ניתן להתחבר. בדוק את הקוד.',
+        errorGen: 'שגיאה: ',
+        timeout: 'לא הצלחנו להתחבר. נסה שוב.',
+        disconnected: 'השחקן השני התנתק',
+        meLabel: 'אני', themLabel: 'יריב',
+        copied: 'הועתק!',
+    },
+    en: {
+        dir: 'ltr', lang: 'en',
+        title: 'Tic Tac Toe',
+        chooseMode: 'Choose game mode',
+        modeQ: 'How do you want to play?',
+        vsAI: '🤖 vs Computer',
+        vsFriend: '👥 vs Friend (online)',
+        chooseDiff: 'Choose difficulty',
+        easy: 'Easy', easyDesc: 'Many mistakes',
+        medium: 'Medium', mediumDesc: 'Sometimes wrong',
+        hard: 'Hard', hardDesc: 'Unbeatable',
+        back: '← Back',
+        connectTitle: 'Connect Players',
+        createRoom: 'Create Room',
+        joinRoom: 'Join Room',
+        enterCode: 'Enter room code',
+        connect: 'Connect',
+        yourCode: 'Your room code:',
+        copyHint: 'Click the code to copy. Send it to your friend!',
+        draw: 'Draw',
+        chat: 'Chat',
+        send: 'Send',
+        typeMsg: 'Type a message...',
+        playAgain: 'Play Again',
+        mainMenu: 'Main Menu',
+        // dynamic
+        youLabel: 'You', rivalLabel: 'Rival', aiLabel: 'Computer',
+        yourTurn: 'Your turn!',
+        rivalTurn: "Rival's turn...",
+        aiThinking: 'Computer is thinking...',
+        youWin: 'You win! 🎉', youLose: 'You lose 😢', aiWins: 'Computer wins 🤖',
+        drawResult: "It's a draw! 🤝",
+        creatingRoom: 'Creating room...',
+        waitingPlayer: 'Waiting for second player...',
+        connecting: 'Connecting...',
+        connected: 'Connected!',
+        codeUsed: 'Code taken. Try again.',
+        errorConn: 'Cannot connect. Check the code.',
+        errorGen: 'Error: ',
+        timeout: 'Connection failed. Try again.',
+        disconnected: 'The other player disconnected',
+        meLabel: 'Me', themLabel: 'Them',
+        copied: 'Copied!',
+    },
+    ar: {
+        dir: 'rtl', lang: 'ar',
+        title: 'إكس-أو',
+        chooseMode: 'اختر وضع اللعبة',
+        modeQ: 'كيف تريد اللعب؟',
+        vsAI: '🤖 ضد الكمبيوتر',
+        vsFriend: '👥 ضد صديق (أونلاين)',
+        chooseDiff: 'اختر مستوى الصعوبة',
+        easy: 'سهل', easyDesc: 'أخطاء كثيرة',
+        medium: 'متوسط', mediumDesc: 'أحياناً يخطئ',
+        hard: 'صعب', hardDesc: 'لا يمكن التغلب عليه',
+        back: '→ رجوع',
+        connectTitle: 'ربط اللاعبين',
+        createRoom: 'إنشاء غرفة',
+        joinRoom: 'انضم إلى غرفة',
+        enterCode: 'أدخل رمز الغرفة',
+        connect: 'اتصال',
+        yourCode: 'رمز غرفتك:',
+        copyHint: 'انقر على الرمز للنسخ. أرسله لصديقك!',
+        draw: 'تعادل',
+        chat: 'دردشة',
+        send: 'إرسال',
+        typeMsg: 'اكتب رسالة...',
+        playAgain: 'العب مجدداً',
+        mainMenu: 'القائمة الرئيسية',
+        // dynamic
+        youLabel: 'أنت', rivalLabel: 'المنافس', aiLabel: 'الكمبيوتر',
+        yourTurn: 'دورك!',
+        rivalTurn: 'دور المنافس...',
+        aiThinking: 'الكمبيوتر يفكر...',
+        youWin: 'فزت! 🎉', youLose: 'خسرت 😢', aiWins: 'الكمبيوتر فاز 🤖',
+        drawResult: 'تعادل! 🤝',
+        creatingRoom: 'جارٍ إنشاء الغرفة...',
+        waitingPlayer: 'في انتظار اللاعب الثاني...',
+        connecting: 'جارٍ الاتصال...',
+        connected: 'متصل!',
+        codeUsed: 'الرمز مستخدم. حاول مجدداً.',
+        errorConn: 'تعذّر الاتصال. تحقق من الرمز.',
+        errorGen: 'خطأ: ',
+        timeout: 'فشل الاتصال. حاول مجدداً.',
+        disconnected: 'انقطع اتصال اللاعب الآخر',
+        meLabel: 'أنا', themLabel: 'المنافس',
+        copied: 'تم النسخ!',
+    }
+};
+
+// ===================================================
+// LANGUAGE SYSTEM
+// ===================================================
+let currentLang = 'he';
+
+function t(key) { return T[currentLang][key] || key; }
+
+function applyLang(lang) {
+    currentLang = lang;
+    const cfg = T[lang];
+    document.documentElement.lang = cfg.lang;
+    document.documentElement.dir  = cfg.dir;
+    document.title = cfg.title;
+
+    // Static elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (cfg[key] !== undefined) el.textContent = cfg[key];
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.dataset.i18nPlaceholder;
+        if (cfg[key] !== undefined) el.placeholder = cfg[key];
+    });
+
+    // Language bar active state
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+
+    // Chat text-align follows dir
+    document.querySelectorAll('.chat-messages').forEach(el => {
+        el.style.textAlign = cfg.dir === 'rtl' ? 'right' : 'left';
+    });
+
+    // Update dynamic UI if game is running
+    if (gameActive) updateTurnIndicator();
+    if (mode === 'ai') {
+        document.getElementById('badge-x').textContent = mySymbol === 'X'
+            ? `X - ${t('youLabel')}` : `X - ${t('aiLabel')}`;
+        document.getElementById('badge-o').textContent = mySymbol === 'O'
+            ? `O - ${t('youLabel')}` : `O - ${t('aiLabel')}`;
+    } else if (mode === 'multiplayer') {
+        document.getElementById('badge-x').textContent = mySymbol === 'X'
+            ? `X - ${t('youLabel')}` : `X - ${t('rivalLabel')}`;
+        document.getElementById('badge-o').textContent = mySymbol === 'O'
+            ? `O - ${t('youLabel')}` : `O - ${t('rivalLabel')}`;
+    }
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+});
+
+// ===================================================
+// GAME CONSTANTS & STATE
+// ===================================================
 const WIN_COMBOS = [
     [0,1,2],[3,4,5],[6,7,8],
     [0,3,6],[1,4,7],[2,5,8],
     [0,4,8],[2,4,6]
 ];
 
-// ===== State =====
-let mode = null;           // 'ai' | 'multiplayer'
-let difficulty = null;     // 'easy' | 'medium' | 'hard'
+let mode = null;
+let difficulty = null;
 let mySymbol = null;
 let aiSymbol = null;
 let board = Array(9).fill(null);
@@ -444,53 +515,64 @@ let currentTurn = 'X';
 let gameActive = false;
 let conn = null;
 let peer = null;
-let score = { X: 0, O: 0, draw: 0 };
+let score = { X:0, O:0, draw:0 };
 
-// ===== DOM =====
-const modePanel        = document.getElementById('mode-panel');
-const difficultyPanel  = document.getElementById('difficulty-panel');
-const connectionPanel  = document.getElementById('connection-panel');
-const gamePanel        = document.getElementById('game-panel');
-const mainSubtitle     = document.getElementById('main-subtitle');
-const statusEl         = document.getElementById('status');
-const turnIndicator    = document.getElementById('turn-indicator');
-const resultOverlay    = document.getElementById('result-overlay');
-const resultText       = document.getElementById('result-text');
-const cells            = document.querySelectorAll('.cell');
-const chatArea         = document.getElementById('chat-area');
-const chatMessages     = document.getElementById('chat-messages');
-const chatInput        = document.getElementById('chat-input');
-const roomCodeEl       = document.getElementById('room-code');
-const roomCodeDisplay  = document.getElementById('room-code-display');
-const joinInputDiv     = document.getElementById('join-input');
-const roomInput        = document.getElementById('room-input');
+// ===================================================
+// DOM REFS
+// ===================================================
+const modePanel       = document.getElementById('mode-panel');
+const difficultyPanel = document.getElementById('difficulty-panel');
+const connectionPanel = document.getElementById('connection-panel');
+const gamePanel       = document.getElementById('game-panel');
+const mainSubtitle    = document.getElementById('main-subtitle');
+const statusEl        = document.getElementById('status');
+const turnIndicator   = document.getElementById('turn-indicator');
+const resultOverlay   = document.getElementById('result-overlay');
+const resultText      = document.getElementById('result-text');
+const cells           = document.querySelectorAll('.cell');
+const chatArea        = document.getElementById('chat-area');
+const chatMessages    = document.getElementById('chat-messages');
+const chatInput       = document.getElementById('chat-input');
+const roomCodeEl      = document.getElementById('room-code');
+const roomCodeDisplay = document.getElementById('room-code-display');
+const joinInputDiv    = document.getElementById('join-input');
+const roomInput       = document.getElementById('room-input');
 
-// ===== Mode Selection =====
+// ===================================================
+// PANEL NAVIGATION
+// ===================================================
+function showPanel(panel) {
+    [modePanel, difficultyPanel, connectionPanel].forEach(p => p.style.display = 'none');
+    if (panel) panel.style.display = 'block';
+}
+
 document.getElementById('btn-vs-ai').addEventListener('click', () => {
     showPanel(difficultyPanel);
-    mainSubtitle.textContent = 'בחר רמת קושי';
+    mainSubtitle.textContent = t('chooseDiff');
 });
 
 document.getElementById('btn-vs-friend').addEventListener('click', () => {
     mode = 'multiplayer';
     showPanel(connectionPanel);
-    mainSubtitle.textContent = 'משחק אונליין';
+    mainSubtitle.textContent = t('connectTitle');
 });
 
-// Back buttons
 document.getElementById('btn-back').addEventListener('click', () => {
     showPanel(modePanel);
-    mainSubtitle.textContent = 'בחר מצב משחק';
+    mainSubtitle.textContent = t('chooseMode');
 });
+
 document.getElementById('btn-back-mp').addEventListener('click', () => {
     if (peer) { peer.destroy(); peer = null; }
     conn = null;
     resetConnectionUI();
     showPanel(modePanel);
-    mainSubtitle.textContent = 'בחר מצב משחק';
+    mainSubtitle.textContent = t('chooseMode');
 });
 
-// Difficulty
+// ===================================================
+// AI MODE
+// ===================================================
 ['easy','medium','hard'].forEach(d => {
     document.getElementById('diff-' + d).addEventListener('click', () => {
         difficulty = d;
@@ -502,23 +584,17 @@ document.getElementById('btn-back-mp').addEventListener('click', () => {
     });
 });
 
-function showPanel(panel) {
-    [modePanel, difficultyPanel, connectionPanel].forEach(p => p.style.display = 'none');
-    if (panel) panel.style.display = 'block';
-}
-
-// ===== AI Game =====
 function startAIGame() {
     showPanel(null);
     gamePanel.style.display = 'block';
     chatArea.style.display = 'none';
-    document.getElementById('badge-x').textContent = 'X - אתה';
-    document.getElementById('badge-o').textContent = 'O - מחשב';
+    document.getElementById('badge-x').textContent = `X - ${t('youLabel')}`;
+    document.getElementById('badge-o').textContent = `O - ${t('aiLabel')}`;
     updateScore();
     resetBoard();
 }
 
-// ===== Minimax AI =====
+// ===== Minimax =====
 function checkWinner(b) {
     for (const [a,c,d] of WIN_COMBOS) {
         if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
@@ -528,10 +604,9 @@ function checkWinner(b) {
 
 function minimax(b, isMax) {
     const result = checkWinner(b);
-    if (result === aiSymbol)  return  10;
-    if (result === mySymbol)  return -10;
-    if (result === 'draw')    return   0;
-
+    if (result === aiSymbol) return  10;
+    if (result === mySymbol) return -10;
+    if (result === 'draw')   return   0;
     const scores = [];
     for (let i = 0; i < 9; i++) {
         if (!b[i]) {
@@ -544,25 +619,18 @@ function minimax(b, isMax) {
 }
 
 function getBestMove() {
-    // Easy: 80% random
-    if (difficulty === 'easy') {
-        if (Math.random() < 0.8) return randomMove();
-    }
-    // Medium: 40% random
-    if (difficulty === 'medium') {
-        if (Math.random() < 0.4) return randomMove();
-    }
-    // Hard (and fallthrough): minimax
-    let bestScore = -Infinity, bestIndex = -1;
+    if (difficulty === 'easy'   && Math.random() < 0.80) return randomMove();
+    if (difficulty === 'medium' && Math.random() < 0.40) return randomMove();
+    let best = -Infinity, idx = -1;
     for (let i = 0; i < 9; i++) {
         if (!board[i]) {
             board[i] = aiSymbol;
             const s = minimax(board, false);
             board[i] = null;
-            if (s > bestScore) { bestScore = s; bestIndex = i; }
+            if (s > best) { best = s; idx = i; }
         }
     }
-    return bestIndex;
+    return idx;
 }
 
 function randomMove() {
@@ -572,22 +640,21 @@ function randomMove() {
 
 function aiTurn() {
     if (!gameActive) return;
-    turnIndicator.textContent = 'המחשב חושב...';
+    turnIndicator.textContent = t('aiThinking');
     turnIndicator.style.color = '#ffd700';
-
     setTimeout(() => {
         if (!gameActive) return;
         const idx = getBestMove();
-        if (idx !== null && idx !== undefined && idx >= 0) {
-            makeMove(idx, aiSymbol);
-        }
-    }, 500 + Math.random() * 300);
+        if (idx !== null && idx >= 0) makeMove(idx, aiSymbol);
+    }, 450 + Math.random() * 300);
 }
 
-// ===== Multiplayer Setup =====
-function setStatus(text, cls) {
+// ===================================================
+// MULTIPLAYER
+// ===================================================
+function setStatus(html, cls) {
     statusEl.className = cls ? `status-${cls}` : '';
-    statusEl.innerHTML = text;
+    statusEl.innerHTML = html;
 }
 
 function generateCode() {
@@ -604,24 +671,23 @@ const btnConnect = document.getElementById('btn-connect');
 btnCreate.addEventListener('click', () => {
     const code   = generateCode();
     const peerId = 'ttt-' + code;
-
     btnCreate.disabled = btnJoin.disabled = true;
-    setStatus('<span class="loader"></span> יוצר חדר...', 'waiting');
+    setStatus(`<span class="loader"></span> ${t('creatingRoom')}`, 'waiting');
 
-    peer = new Peer(peerId, { config: { iceServers: [
-        { urls:'stun:stun.l.google.com:19302' },
-        { urls:'stun:stun1.l.google.com:19302' }
+    peer = new Peer(peerId, { config: { iceServers:[
+        {urls:'stun:stun.l.google.com:19302'},
+        {urls:'stun:stun1.l.google.com:19302'}
     ]}});
 
     peer.on('open', () => {
         roomCodeDisplay.style.display = 'block';
         roomCodeEl.textContent = code;
-        setStatus('<span class="loader"></span> ממתין לשחקן שני...', 'waiting');
+        setStatus(`<span class="loader"></span> ${t('waitingPlayer')}`, 'waiting');
         mySymbol = 'X';
     });
     peer.on('connection', c => { conn = c; setupConnection(); });
     peer.on('error', err => {
-        setStatus(err.type === 'unavailable-id' ? 'קוד תפוס. נסה שוב.' : 'שגיאה: '+err.message, 'error');
+        setStatus(err.type === 'unavailable-id' ? t('codeUsed') : t('errorGen') + err.message, 'error');
         btnCreate.disabled = btnJoin.disabled = false;
     });
 });
@@ -629,46 +695,36 @@ btnCreate.addEventListener('click', () => {
 roomCodeEl.addEventListener('click', () => {
     navigator.clipboard.writeText(roomCodeEl.textContent).then(() => {
         const orig = roomCodeEl.textContent;
-        roomCodeEl.textContent = 'הועתק!';
+        roomCodeEl.textContent = t('copied');
         setTimeout(() => roomCodeEl.textContent = orig, 1000);
     });
 });
 
-btnJoin.addEventListener('click', () => {
-    joinInputDiv.classList.add('visible');
-    roomInput.focus();
-});
+btnJoin.addEventListener('click', () => { joinInputDiv.classList.add('visible'); roomInput.focus(); });
 btnConnect.addEventListener('click', connectToRoom);
 roomInput.addEventListener('keydown', e => e.key === 'Enter' && connectToRoom());
 
 function connectToRoom() {
     const code = roomInput.value.trim().toUpperCase();
-    if (code.length < 3) { setStatus('הכנס קוד תקין', 'error'); return; }
-
+    if (code.length < 3) { setStatus(t('enterCode'), 'error'); return; }
     btnCreate.disabled = btnJoin.disabled = btnConnect.disabled = true;
-    setStatus('<span class="loader"></span> מתחבר...', 'waiting');
+    setStatus(`<span class="loader"></span> ${t('connecting')}`, 'waiting');
 
-    peer = new Peer(undefined, { config: { iceServers: [
-        { urls:'stun:stun.l.google.com:19302' },
-        { urls:'stun:stun1.l.google.com:19302' }
+    peer = new Peer(undefined, { config: { iceServers:[
+        {urls:'stun:stun.l.google.com:19302'},
+        {urls:'stun:stun1.l.google.com:19302'}
     ]}});
 
     peer.on('open', () => {
-        conn = peer.connect('ttt-' + code, { reliable: true });
+        conn = peer.connect('ttt-' + code, { reliable:true });
         conn.on('open', () => { mySymbol = 'O'; setupConnection(); });
-        conn.on('error', () => {
-            setStatus('לא ניתן להתחבר. בדוק את הקוד.', 'error');
-            resetConnectionUI();
-        });
+        conn.on('error', () => { setStatus(t('errorConn'), 'error'); resetConnectionUI(); });
     });
-    peer.on('error', err => {
-        setStatus('שגיאה: ' + err.message, 'error');
-        resetConnectionUI();
-    });
+    peer.on('error', err => { setStatus(t('errorGen') + err.message, 'error'); resetConnectionUI(); });
 
     setTimeout(() => {
         if (!gameActive && statusEl.className.includes('waiting')) {
-            setStatus('לא הצלחנו להתחבר. נסה שוב.', 'error');
+            setStatus(t('timeout'), 'error');
             resetConnectionUI();
         }
     }, 15000);
@@ -680,14 +736,16 @@ function resetConnectionUI() {
 
 function setupConnection() {
     const go = () => {
-        setStatus('מחובר!', 'connected');
+        setStatus(t('connected'), 'connected');
         score = { X:0, O:0, draw:0 };
         setTimeout(() => {
             showPanel(null);
             gamePanel.style.display = 'block';
             chatArea.style.display = 'block';
-            document.getElementById('badge-x').textContent = mySymbol === 'X' ? 'X - אתה' : 'X - יריב';
-            document.getElementById('badge-o').textContent = mySymbol === 'O' ? 'O - אתה' : 'O - יריב';
+            document.getElementById('badge-x').textContent = mySymbol === 'X'
+                ? `X - ${t('youLabel')}` : `X - ${t('rivalLabel')}`;
+            document.getElementById('badge-o').textContent = mySymbol === 'O'
+                ? `O - ${t('youLabel')}` : `O - ${t('rivalLabel')}`;
             updateScore();
             resetBoard();
         }, 400);
@@ -696,19 +754,21 @@ function setupConnection() {
     if (conn.open) go(); else conn.on('open', go);
 
     conn.on('data', data => {
-        if (data.type === 'move')       handleRemoteMove(data.index);
-        else if (data.type === 'chat')  addChatMessage(data.text, false);
+        if (data.type === 'move')      handleRemoteMove(data.index);
+        else if (data.type === 'chat') addChatMessage(data.text, false);
         else if (data.type === 'again') resetBoard();
     });
 
     conn.on('close', () => {
         gameActive = false;
-        alert('השחקן השני התנתק');
+        alert(t('disconnected'));
         returnToMenu();
     });
 }
 
-// ===== Core Game Logic =====
+// ===================================================
+// CORE GAME LOGIC
+// ===================================================
 function resetBoard() {
     board = Array(9).fill(null);
     currentTurn = 'X';
@@ -716,29 +776,25 @@ function resetBoard() {
     resultOverlay.classList.remove('visible');
     cells.forEach(c => { c.innerHTML=''; c.classList.remove('taken','win-cell'); });
     updateTurnIndicator();
-
-    // If AI mode and AI goes first (ai is X — not the case here, but just in case)
-    if (mode === 'ai' && currentTurn === aiSymbol) {
-        aiTurn();
-    }
+    if (mode === 'ai' && currentTurn === aiSymbol) aiTurn();
 }
 
 function updateTurnIndicator() {
     if (!gameActive) return;
     if (mode === 'ai') {
         if (currentTurn === mySymbol) {
-            turnIndicator.textContent = 'התור שלך!';
+            turnIndicator.textContent = t('yourTurn');
             turnIndicator.style.color = '#00e676';
         } else {
-            turnIndicator.textContent = 'המחשב חושב...';
+            turnIndicator.textContent = t('aiThinking');
             turnIndicator.style.color = '#ffd700';
         }
     } else {
         if (currentTurn === mySymbol) {
-            turnIndicator.textContent = 'התור שלך!';
+            turnIndicator.textContent = t('yourTurn');
             turnIndicator.style.color = '#00e676';
         } else {
-            turnIndicator.textContent = 'התור של היריב...';
+            turnIndicator.textContent = t('rivalTurn');
             turnIndicator.style.color = '#ffd700';
         }
     }
@@ -749,9 +805,7 @@ cells.forEach(cell => {
         const index = parseInt(cell.dataset.index);
         if (!gameActive || board[index] || currentTurn !== mySymbol) return;
         makeMove(index, mySymbol);
-        if (mode === 'multiplayer' && conn) {
-            conn.send({ type: 'move', index });
-        }
+        if (mode === 'multiplayer' && conn) conn.send({ type:'move', index });
     });
 });
 
@@ -768,21 +822,21 @@ function makeMove(index, symbol) {
         score[symbol]++;
         updateScore();
         if (mode === 'ai') {
-            showResult(symbol === mySymbol ? 'ניצחת! 🎉' : 'המחשב ניצח 🤖', symbol === mySymbol ? 'win' : 'lose');
+            showResult(symbol === mySymbol ? t('youWin') : t('aiWins'),
+                       symbol === mySymbol ? 'win' : 'lose');
         } else {
-            showResult(symbol === mySymbol ? 'ניצחת! 🎉' : 'הפסדת 😢', symbol === mySymbol ? 'win' : 'lose');
+            showResult(symbol === mySymbol ? t('youWin') : t('youLose'),
+                       symbol === mySymbol ? 'win' : 'lose');
         }
     } else if (board.every(c => c !== null)) {
         gameActive = false;
         score.draw++;
         updateScore();
-        showResult('תיקו! 🤝', 'draw');
+        showResult(t('drawResult'), 'draw');
     } else {
         currentTurn = symbol === 'X' ? 'O' : 'X';
         updateTurnIndicator();
-        if (mode === 'ai' && currentTurn === aiSymbol) {
-            aiTurn();
-        }
+        if (mode === 'ai' && currentTurn === aiSymbol) aiTurn();
     }
 }
 
@@ -791,15 +845,12 @@ function handleRemoteMove(index) {
 }
 
 function checkWin(symbol) {
-    for (const combo of WIN_COMBOS) {
+    for (const combo of WIN_COMBOS)
         if (combo.every(i => board[i] === symbol)) return combo;
-    }
     return null;
 }
 
-function highlightWin(combo) {
-    combo.forEach(i => cells[i].classList.add('win-cell'));
-}
+function highlightWin(combo) { combo.forEach(i => cells[i].classList.add('win-cell')); }
 
 function updateScore() {
     document.getElementById('score-x').textContent    = score.X;
@@ -808,19 +859,17 @@ function updateScore() {
 }
 
 function showResult(text, type) {
-    resultText.textContent  = text;
-    resultText.className    = 'result-text result-' + type;
+    resultText.textContent = text;
+    resultText.className   = 'result-text result-' + type;
     turnIndicator.textContent = '';
     setTimeout(() => resultOverlay.classList.add('visible'), 750);
 }
 
-// Play Again
 document.getElementById('btn-play-again').addEventListener('click', () => {
     resetBoard();
-    if (mode === 'multiplayer' && conn) conn.send({ type: 'again' });
+    if (mode === 'multiplayer' && conn) conn.send({ type:'again' });
 });
 
-// Main Menu
 document.getElementById('btn-main-menu').addEventListener('click', returnToMenu);
 
 function returnToMenu() {
@@ -836,17 +885,19 @@ function returnToMenu() {
     roomInput.value = '';
     statusEl.textContent = '';
     showPanel(modePanel);
-    mainSubtitle.textContent = 'בחר מצב משחק';
+    mainSubtitle.textContent = t('chooseMode');
 }
 
-// ===== Chat (multiplayer only) =====
+// ===================================================
+// CHAT
+// ===================================================
 document.getElementById('btn-send').addEventListener('click', sendChat);
 chatInput.addEventListener('keydown', e => e.key === 'Enter' && sendChat());
 
 function sendChat() {
     const text = chatInput.value.trim();
     if (!text || !conn) return;
-    conn.send({ type: 'chat', text });
+    conn.send({ type:'chat', text });
     addChatMessage(text, true);
     chatInput.value = '';
 }
@@ -854,10 +905,15 @@ function sendChat() {
 function addChatMessage(text, isMe) {
     const p = document.createElement('p');
     p.className = isMe ? 'me' : 'them';
-    p.textContent = (isMe ? 'אני: ' : 'יריב: ') + text;
+    p.textContent = (isMe ? t('meLabel') : t('themLabel')) + ': ' + text;
     chatMessages.appendChild(p);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+// ===================================================
+// INIT
+// ===================================================
+applyLang('he');
 </script>
 </body>
 </html>
