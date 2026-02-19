@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>איקס עיגול - מרובה שחקנים</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            direction: rtl;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #f857a6, #ff5858);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* Connection Panel */
+        #connection-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+        }
+
+        #connection-panel h2 {
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f857a6, #ff5858);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(248, 87, 166, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .input-group {
+            display: none;
+            margin-top: 15px;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group.visible {
+            display: flex;
+        }
+
+        input[type="text"] {
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            width: 220px;
+            font-family: monospace;
+            letter-spacing: 2px;
+            direction: ltr;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: normal;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .room-code {
+            font-family: monospace;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            color: #f857a6;
+            background: rgba(248, 87, 166, 0.1);
+            padding: 10px 24px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: inline-block;
+            direction: ltr;
+            user-select: all;
+            cursor: pointer;
+        }
+
+        .copy-hint {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #aaa;
+            min-height: 24px;
+        }
+
+        .status-waiting {
+            color: #ffd700 !important;
+        }
+
+        .status-connected {
+            color: #00e676 !important;
+        }
+
+        .status-error {
+            color: #ff5252 !important;
+        }
+
+        /* Game Panel */
+        #game-panel {
+            display: none;
+            text-align: center;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .player-badge {
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .player-x {
+            background: rgba(248, 87, 166, 0.2);
+            border: 2px solid #f857a6;
+            color: #f857a6;
+        }
+
+        .player-o {
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .turn-indicator {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        /* Board */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 25px;
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cell:hover:not(.taken) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+
+        .cell .x {
+            color: #f857a6;
+            text-shadow: 0 0 20px rgba(248, 87, 166, 0.5);
+        }
+
+        .cell .o {
+            color: #667eea;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .cell.win-cell {
+            animation: winPulse 0.6s ease infinite alternate;
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        @keyframes winPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        /* Score */
+        .scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-num {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Result overlay */
+        #result-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        #result-overlay.visible {
+            display: flex;
+        }
+
+        .result-box {
+            background: rgba(30, 30, 50, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .result-text {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .result-win {
+            color: #00e676;
+        }
+
+        .result-lose {
+            color: #ff5252;
+        }
+
+        .result-draw {
+            color: #ffd700;
+        }
+
+        /* Chat */
+        .chat-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            max-width: 320px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .chat-title {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .chat-messages {
+            height: 100px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .chat-messages p {
+            margin-bottom: 5px;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .chat-messages .me {
+            background: rgba(248, 87, 166, 0.15);
+        }
+
+        .chat-messages .them {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .chat-input-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .chat-input-row button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        /* Loader */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 400px) {
+            h1 { font-size: 1.8rem; }
+            .board { width: 280px; height: 280px; }
+            .cell { font-size: 2.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>איקס עיגול</h1>
+    <p class="subtitle">שחקו אחד נגד השני מכל מקום!</p>
+
+    <!-- Connection Panel -->
+    <div id="connection-panel">
+        <h2>בחרו אפשרות</h2>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="btn-create">צור חדר</button>
+            <button class="btn btn-secondary" id="btn-join">הצטרף לחדר</button>
+        </div>
+
+        <div class="input-group" id="join-input">
+            <input type="text" id="room-input" placeholder="הכנס קוד חדר" maxlength="6" autocomplete="off">
+            <button class="btn btn-secondary" id="btn-connect">התחבר</button>
+        </div>
+
+        <div id="room-code-display" style="display:none">
+            <p>קוד החדר שלך:</p>
+            <div class="room-code" id="room-code" title="לחץ להעתקה"></div>
+            <p class="copy-hint">לחץ על הקוד כדי להעתיק. שלח אותו לחבר!</p>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <!-- Game Panel -->
+    <div id="game-panel">
+        <div class="game-info">
+            <span class="player-badge player-x" id="badge-x">X - שחקן</span>
+            <span class="player-badge player-o" id="badge-o">O - שחקן</span>
+        </div>
+
+        <div class="scoreboard">
+            <div class="score-item">
+                <span style="color:#f857a6">X</span>
+                <span class="score-num" id="score-x">0</span>
+            </div>
+            <div class="score-item">
+                <span style="color:#888">תיקו</span>
+                <span class="score-num" id="score-draw">0</span>
+            </div>
+            <div class="score-item">
+                <span style="color:#667eea">O</span>
+                <span class="score-num" id="score-o">0</span>
+            </div>
+        </div>
+
+        <div class="turn-indicator" id="turn-indicator"></div>
+
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-title">צ'אט</div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-row">
+                <button id="btn-send">שלח</button>
+                <input type="text" id="chat-input" placeholder="כתוב הודעה...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Overlay -->
+    <div id="result-overlay">
+        <div class="result-box">
+            <div class="result-text" id="result-text"></div>
+            <button class="btn btn-primary" id="btn-play-again">שחק שוב</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+        // ===== Game State =====
+        let mySymbol = null;       // 'X' or 'O'
+        let board = Array(9).fill(null);
+        let currentTurn = 'X';     // X always goes first
+        let gameActive = false;
+        let conn = null;           // PeerJS connection
+        let peer = null;
+        let isHost = false;
+        let score = { X: 0, O: 0, draw: 0 };
+
+        const WIN_COMBOS = [
+            [0,1,2],[3,4,5],[6,7,8],
+            [0,3,6],[1,4,7],[2,5,8],
+            [0,4,8],[2,4,6]
+        ];
+
+        // ===== DOM Elements =====
+        const connectionPanel = document.getElementById('connection-panel');
+        const gamePanel = document.getElementById('game-panel');
+        const btnCreate = document.getElementById('btn-create');
+        const btnJoin = document.getElementById('btn-join');
+        const joinInput = document.getElementById('join-input');
+        const roomInput = document.getElementById('room-input');
+        const btnConnect = document.getElementById('btn-connect');
+        const roomCodeDisplay = document.getElementById('room-code-display');
+        const roomCodeEl = document.getElementById('room-code');
+        const statusEl = document.getElementById('status');
+        const boardEl = document.getElementById('board');
+        const cells = document.querySelectorAll('.cell');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const resultOverlay = document.getElementById('result-overlay');
+        const resultText = document.getElementById('result-text');
+        const btnPlayAgain = document.getElementById('btn-play-again');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const btnSend = document.getElementById('btn-send');
+
+        // ===== Generate Room Code =====
+        function generateCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 5; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // ===== PeerJS Setup =====
+        function setStatus(text, cls) {
+            statusEl.className = cls ? `status-${cls}` : '';
+            statusEl.innerHTML = text;
+        }
+
+        // Create Room (Host)
+        btnCreate.addEventListener('click', () => {
+            const code = generateCode();
+            const peerId = 'ttt-' + code;
+
+            btnCreate.disabled = true;
+            btnJoin.disabled = true;
+            setStatus('<span class="loader"></span> יוצר חדר...', 'waiting');
+
+            peer = new Peer(peerId, {
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
+
+            peer.on('open', () => {
+                roomCodeDisplay.style.display = 'block';
+                roomCodeEl.textContent = code;
+                setStatus('<span class="loader"></span> ממתין לשחקן שני...', 'waiting');
+                isHost = true;
+                mySymbol = 'X';
+            });
+
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                if (err.type === 'unavailable-id') {
+                    setStatus('קוד זה כבר בשימוש. נסה שוב.', 'error');
+                } else {
+                    setStatus('שגיאה: ' + err.message, 'error');
+                }
+                btnCreate.disabled = false;
+                btnJoin.disabled = false;
+            });
+        });
+
+        // Copy room code
+        roomCodeEl.addEventListener('click', () => {
+            navigator.clipboard.writeText(roomCodeEl.textContent).then(() => {
+                const original = roomCodeEl.textContent;
+                roomCodeEl.textContent = 'הועתק!';
+                setTimeout(() => roomCodeEl.textContent = original, 1000);
+            });
+        });
+
+        // Join Room
+        btnJoin.addEventListener('click', () => {
+            joinInput.classList.add('visible');
+            roomInput.focus();
+        });
+
+        btnConnect.addEventListener('click', () => connectToRoom());
+        roomInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') connectToRoom();
+        });
+
+        function connectToRoom() {
+            const code = roomInput.value.trim().toUpperCase();
+            if (code.length < 3) {
+                setStatus('הכנס קוד חדר תקין', 'error');
+                return;
+            }
+
+            btnCreate.disabled = true;
+            btnJoin.disabled = true;
+            btnConnect.disabled = true;
+            setStatus('<span class="loader"></span> מתחבר...', 'waiting');
+
+            peer = new Peer(undefined, {
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
+
+            peer.on('open', () => {
+                const peerId = 'ttt-' + code;
+                conn = peer.connect(peerId, { reliable: true });
+
+                conn.on('open', () => {
+                    isHost = false;
+                    mySymbol = 'O';
+                    setupConnection();
+                });
+
+                conn.on('error', (err) => {
+                    setStatus('לא ניתן להתחבר. בדוק את הקוד.', 'error');
+                    btnCreate.disabled = false;
+                    btnJoin.disabled = false;
+                    btnConnect.disabled = false;
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                setStatus('שגיאה בחיבור: ' + err.message, 'error');
+                btnCreate.disabled = false;
+                btnJoin.disabled = false;
+                btnConnect.disabled = false;
+            });
+
+            // Timeout
+            setTimeout(() => {
+                if (!gameActive) {
+                    if (statusEl.classList.contains('status-waiting')) {
+                        setStatus('לא הצלחנו להתחבר. בדוק את הקוד ונסה שוב.', 'error');
+                        btnCreate.disabled = false;
+                        btnJoin.disabled = false;
+                        btnConnect.disabled = false;
+                    }
+                }
+            }, 15000);
+        }
+
+        // ===== Connection Ready =====
+        function setupConnection() {
+            conn.on('open', () => startGame());
+
+            // If already open
+            if (conn.open) startGame();
+
+            conn.on('data', (data) => {
+                if (data.type === 'move') {
+                    handleRemoteMove(data.index);
+                } else if (data.type === 'chat') {
+                    addChatMessage(data.text, false);
+                } else if (data.type === 'play-again') {
+                    resetBoard();
+                }
+            });
+
+            conn.on('close', () => {
+                gameActive = false;
+                setStatus('השחקן השני התנתק', 'error');
+                gamePanel.style.display = 'none';
+                connectionPanel.style.display = 'block';
+                btnCreate.disabled = false;
+                btnJoin.disabled = false;
+                btnConnect.disabled = false;
+            });
+        }
+
+        function startGame() {
+            setStatus('מחובר!', 'connected');
+            setTimeout(() => {
+                connectionPanel.style.display = 'none';
+                gamePanel.style.display = 'block';
+                gameActive = true;
+                resetBoard();
+                updateBadges();
+            }, 500);
+        }
+
+        // ===== Game Logic =====
+        function updateBadges() {
+            const badgeX = document.getElementById('badge-x');
+            const badgeO = document.getElementById('badge-o');
+            if (mySymbol === 'X') {
+                badgeX.textContent = 'X - אתה';
+                badgeO.textContent = 'O - יריב';
+            } else {
+                badgeX.textContent = 'X - יריב';
+                badgeO.textContent = 'O - אתה';
+            }
+        }
+
+        function updateTurnIndicator() {
+            if (!gameActive) return;
+            if (currentTurn === mySymbol) {
+                turnIndicator.textContent = 'התור שלך!';
+                turnIndicator.style.color = '#00e676';
+            } else {
+                turnIndicator.textContent = 'התור של היריב...';
+                turnIndicator.style.color = '#ffd700';
+            }
+        }
+
+        function resetBoard() {
+            board = Array(9).fill(null);
+            currentTurn = 'X';
+            gameActive = true;
+            resultOverlay.classList.remove('visible');
+
+            cells.forEach(cell => {
+                cell.innerHTML = '';
+                cell.classList.remove('taken', 'win-cell');
+            });
+
+            updateTurnIndicator();
+        }
+
+        // Cell click
+        cells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                const index = parseInt(cell.dataset.index);
+                if (!gameActive || board[index] || currentTurn !== mySymbol) return;
+
+                makeMove(index, mySymbol);
+                conn.send({ type: 'move', index: index });
+            });
+        });
+
+        function makeMove(index, symbol) {
+            board[index] = symbol;
+            const cell = cells[index];
+            cell.innerHTML = `<span class="${symbol.toLowerCase()}">${symbol}</span>`;
+            cell.classList.add('taken');
+
+            const winCombo = checkWin(symbol);
+            if (winCombo) {
+                gameActive = false;
+                highlightWin(winCombo);
+                if (symbol === mySymbol) {
+                    showResult('ניצחת!', 'win');
+                    score[symbol]++;
+                } else {
+                    showResult('הפסדת!', 'lose');
+                    score[symbol]++;
+                }
+                updateScore();
+            } else if (board.every(c => c !== null)) {
+                gameActive = false;
+                score.draw++;
+                updateScore();
+                showResult('תיקו!', 'draw');
+            } else {
+                currentTurn = symbol === 'X' ? 'O' : 'X';
+                updateTurnIndicator();
+            }
+        }
+
+        function handleRemoteMove(index) {
+            const opponentSymbol = mySymbol === 'X' ? 'O' : 'X';
+            makeMove(index, opponentSymbol);
+        }
+
+        function checkWin(symbol) {
+            for (const combo of WIN_COMBOS) {
+                if (combo.every(i => board[i] === symbol)) {
+                    return combo;
+                }
+            }
+            return null;
+        }
+
+        function highlightWin(combo) {
+            combo.forEach(i => cells[i].classList.add('win-cell'));
+        }
+
+        function updateScore() {
+            document.getElementById('score-x').textContent = score.X;
+            document.getElementById('score-o').textContent = score.O;
+            document.getElementById('score-draw').textContent = score.draw;
+        }
+
+        function showResult(text, type) {
+            resultText.textContent = text;
+            resultText.className = 'result-text result-' + type;
+            turnIndicator.textContent = '';
+            setTimeout(() => {
+                resultOverlay.classList.add('visible');
+            }, 800);
+        }
+
+        // Play Again
+        btnPlayAgain.addEventListener('click', () => {
+            resetBoard();
+            conn.send({ type: 'play-again' });
+        });
+
+        // ===== Chat =====
+        btnSend.addEventListener('click', sendChat);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendChat();
+        });
+
+        function sendChat() {
+            const text = chatInput.value.trim();
+            if (!text || !conn) return;
+            conn.send({ type: 'chat', text: text });
+            addChatMessage(text, true);
+            chatInput.value = '';
+        }
+
+        function addChatMessage(text, isMe) {
+            const p = document.createElement('p');
+            p.className = isMe ? 'me' : 'them';
+            p.textContent = (isMe ? 'אני: ' : 'יריב: ') + text;
+            chatMessages.appendChild(p);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
