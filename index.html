@@ -182,6 +182,29 @@
         .loader { display:inline-block; width:18px; height:18px; border:3px solid rgba(255,255,255,.2); border-top-color:#ffd700; border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; margin:0 5px; }
         @keyframes spin { to{transform:rotate(360deg)} }
 
+        /* Sound toggle */
+        .sound-toggle {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 200;
+            background: rgba(0,0,0,.35);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1.1rem;
+            transition: all .2s;
+            backdrop-filter: blur(8px);
+        }
+        .sound-toggle:hover { color: #fff; background: rgba(255,255,255,.15); }
+        .sound-toggle.muted { color: #ff5252; }
+
         @media (max-width:400px) {
             h1 { font-size:1.8rem; }
             .board { width:280px; height:280px; }
@@ -190,6 +213,9 @@
     </style>
 </head>
 <body>
+
+<!-- Sound Toggle -->
+<button class="sound-toggle" id="sound-toggle" title="Toggle sound">&#x1f50a;</button>
 
 <!-- Language Bar -->
 <div class="lang-bar">
@@ -496,6 +522,60 @@ function applyLang(lang) {
 document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.addEventListener('click', () => applyLang(btn.dataset.lang));
 });
+
+// ===================================================
+// SOUND SYSTEM (Web Audio API)
+// ===================================================
+let soundMuted = false;
+const soundToggleBtn = document.getElementById('sound-toggle');
+
+soundToggleBtn.addEventListener('click', () => {
+    soundMuted = !soundMuted;
+    soundToggleBtn.innerHTML = soundMuted ? '&#x1f507;' : '&#x1f50a;';
+    soundToggleBtn.classList.toggle('muted', soundMuted);
+});
+
+function playTone(freq, duration, type = 'sine', volume = 0.3) {
+    if (soundMuted) return;
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+}
+
+function playMoveSound() {
+    playTone(600, 0.1, 'sine', 0.25);
+}
+
+function playWinSound() {
+    if (soundMuted) return;
+    setTimeout(() => playTone(523, 0.15, 'sine', 0.3), 0);
+    setTimeout(() => playTone(659, 0.15, 'sine', 0.3), 150);
+    setTimeout(() => playTone(784, 0.25, 'sine', 0.3), 300);
+}
+
+function playLoseSound() {
+    if (soundMuted) return;
+    setTimeout(() => playTone(400, 0.2, 'sawtooth', 0.2), 0);
+    setTimeout(() => playTone(300, 0.3, 'sawtooth', 0.2), 200);
+}
+
+function playDrawSound() {
+    playTone(440, 0.3, 'triangle', 0.2);
+}
+
+function playChatSound() {
+    playTone(880, 0.08, 'sine', 0.15);
+}
 
 // ===================================================
 // GAME CONSTANTS & STATE
@@ -814,6 +894,7 @@ function makeMove(index, symbol) {
     const cell = cells[index];
     cell.innerHTML = `<span class="${symbol.toLowerCase()}">${symbol}</span>`;
     cell.classList.add('taken');
+    playMoveSound();
 
     const winCombo = checkWin(symbol);
     if (winCombo) {
@@ -822,16 +903,21 @@ function makeMove(index, symbol) {
         score[symbol]++;
         updateScore();
         if (mode === 'ai') {
-            showResult(symbol === mySymbol ? t('youWin') : t('aiWins'),
-                       symbol === mySymbol ? 'win' : 'lose');
+            const isWin = symbol === mySymbol;
+            isWin ? playWinSound() : playLoseSound();
+            showResult(isWin ? t('youWin') : t('aiWins'),
+                       isWin ? 'win' : 'lose');
         } else {
-            showResult(symbol === mySymbol ? t('youWin') : t('youLose'),
-                       symbol === mySymbol ? 'win' : 'lose');
+            const isWin = symbol === mySymbol;
+            isWin ? playWinSound() : playLoseSound();
+            showResult(isWin ? t('youWin') : t('youLose'),
+                       isWin ? 'win' : 'lose');
         }
     } else if (board.every(c => c !== null)) {
         gameActive = false;
         score.draw++;
         updateScore();
+        playDrawSound();
         showResult(t('drawResult'), 'draw');
     } else {
         currentTurn = symbol === 'X' ? 'O' : 'X';
@@ -908,6 +994,7 @@ function addChatMessage(text, isMe) {
     p.textContent = (isMe ? t('meLabel') : t('themLabel')) + ': ' + text;
     chatMessages.appendChild(p);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (!isMe) playChatSound();
 }
 
 // ===================================================
