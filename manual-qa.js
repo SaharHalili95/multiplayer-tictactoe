@@ -1,3 +1,6 @@
+// Manual QA script, not an automated test: drives the UI with Playwright and
+// logs results for a human to read. No assertions - nothing here passes or
+// fails. Run with `node manual-qa.js` against a local server on :8765.
 const { chromium } = require('playwright');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
